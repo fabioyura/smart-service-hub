@@ -50,7 +50,7 @@ Cada empresa (tenant) possui:
 |------------|------------|
 | Angular 18+ | Interface do painel administrativo |
 | TailwindCSS | Estilização moderna e rápida |
-| NgRx (opcional) | Gerenciamento de estado |
+| Signal (opcional) | Gerenciamento de estado |
 | Chart.js / ApexCharts | Gráficos e relatórios |
 | Axios / HttpClient | Comunicação com a API |
 
@@ -104,53 +104,190 @@ smart-service-hub/
 │   ├── routes/
 ```
 
-## About Laravel
+🧠 Arquitetura Geral
+Angular App  →  Laravel API  →  PostgreSQL
+                        ↓
+                      Redis (queues)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Cada requisição é autenticada via Bearer Token (JWT/Sanctum).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Middleware de tenant detection baseado no token.
 
-## Learning Laravel
+Laravel processa lógica de negócios, fila, e serve dados para o front-end.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out the [Laravel Bootcamp](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+O Angular consome via REST, exibe dashboards e formulários.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+💾 Modelagem Inicial (Banco de Dados)
 
-## Laravel Sponsors
+Tabelas principais:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Tabela	Descrição
+tenants	Empresas (nome, domínio, chave de API, plano)
+users	Usuários do sistema (vinculados a um tenant)
+tickets	Conversas/atendimentos
+messages	Mensagens de cada ticket
+tags	Etiquetas configuráveis por empresa
+settings	Configurações gerais de cada tenant
+🧰 Requisitos de Desenvolvimento
+Pré-requisitos
 
-### Premium Partners
+PHP 8.5 (via Laravel Herd)
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry International](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Composer 2.x
 
-## Contributing
+Node.js 20+
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+PostgreSQL 14+
 
-## Code of Conduct
+Git
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+(Opcional) Redis
 
-## Security Vulnerabilities
+Comandos iniciais
+composer create-project laravel/laravel backend
+cd backend
+php artisan serve
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+Frontend (posterior):
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+ng new frontend --style=css --routing=true
+cd frontend
+ng serve
+
+🚀 Futuras Extensões (para roadmap público)
+
+Autenticação OAuth (Google, GitHub)
+
+Tema dark/light no front
+
+Módulo de notificações push
+
+Suporte real à API do WhatsApp (Twilio ou Meta)
+
+## 🚢 Deploy gratuito
+
+### Render
+
+```bash
+# Configuração para Render
+# Backend (Laravel)
+git push render main
+```
+
+| Configuração | Valor |
+|--------------|-------|
+| Type | Web Service |
+| Build Command | `composer install && npm ci && npm run build` |
+| Start Command | `php artisan serve --host 0.0.0.0 --port $PORT` |
+| Environment | PHP |
+
+### Railway
+
+```bash
+# Configuração para Railway
+# Arquivo railway.json na raiz
+{
+  "build": {
+    "builder": "nixpacks",
+    "buildCommand": "composer install && php artisan migrate --force"
+  },
+  "deploy": {
+    "startCommand": "php artisan serve --host 0.0.0.0 --port $PORT",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 90
+  }
+}
+```
+
+### Vercel
+
+```bash
+# Configuração para Vercel
+# Arquivo vercel.json na raiz
+{
+  "version": 2,
+  "framework": null,
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.6.0"
+    }
+  },
+  "routes": [
+    { "src": "/(.*)", "dest": "/api/index.php" }
+  ],
+  "env": {
+    "APP_ENV": "production",
+    "APP_DEBUG": "false",
+    "APP_URL": "https://yourproductionurl.com",
+    "DB_CONNECTION": "pgsql"
+  }
+}
+```
+
+## 🔧 Instalação e Configuração
+
+### Requisitos do Sistema
+
+- PHP 8.5+
+- Composer 2.x
+- Node.js 20+
+- PostgreSQL 14+
+- (Opcional) Redis
+
+### Passos para Instalação
+
+1. Clone o repositório
+```bash
+git clone https://github.com/seu-usuario/smart-service-hub.git
+cd smart-service-hub
+```
+
+2. Instale as dependências do backend
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+
+3. Configure o banco de dados no arquivo .env
+```
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=smart_service_hub
+DB_USERNAME=seu_usuario
+DB_PASSWORD=sua_senha
+```
+
+4. Execute as migrações e seeders
+```bash
+php artisan migrate --seed
+```
+
+5. Inicie o servidor de desenvolvimento
+```bash
+php artisan serve
+```
+
+6. (Opcional) Instale e configure o frontend Angular
+```bash
+cd frontend
+npm install
+ng serve
+```
+
+## 👥 Contribuição
+
+Contribuições são bem-vindas! Para contribuir:
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está licenciado sob a [MIT License](LICENSE).
