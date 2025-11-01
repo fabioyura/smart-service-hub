@@ -278,10 +278,6 @@ npm install
 ng serve
 ```
 
-## 👥 Contribuição
-
-Contribuições são bem-vindas! Para contribuir:
-
 1. Faça um fork do projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
 3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
